@@ -33,7 +33,14 @@ if not os.path.exists(MODEL_PATH):
 def load_model(path: str):
     return joblib.load(path)
 
-model = load_model(MODEL_PATH)
+pipe_model = load_model(MODEL_PATH)
+model = pipe_model["model"]
+mean_score = pipe_model["mean_score"]
+
+if model is None or mean_score is None:
+    st.warning("Model or Score not found")
+    st.stop()
+
 
 #X = train[['ApplicantIncome','CoapplicantIncome','LoanAmount','Loan_Amount_Term','Credit_History','Married']]
 
@@ -84,7 +91,7 @@ with st.form("loan_form"):
         format_func=lambda x: "Exists (1)" if x == 1 else "Does not exist (0)"
     )
 
-
+    check_model_score = st.form_submit_button("Check mean score model score")
 
     submitted = st.form_submit_button("Check Loan Eligibility")
 
@@ -109,11 +116,17 @@ if submitted:
     st.dataframe(X_to_pred)
 
     prediction = model.predict(X_to_pred)[0]
+
+    if prediction is None:
+        st.warning("Prediction Error")
+        st.stop()
+
     if prediction == 1:
         st.success("You approved for taking a loan Good luck")
     else:
         st.error("You are not allowed to take a loan we are sorry")
 
-
+if check_model_score:
+    st.info(mean_score)
 
 
