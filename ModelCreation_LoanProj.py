@@ -6,14 +6,19 @@ from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler,OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split
 
 train = pd.read_csv("train-LoanProj.csv")
+test = pd.read_csv("test-LoanProj.csv")
 #print(train.columns)
+#print(test.columns)
+
 
 X = train[['ApplicantIncome','CoapplicantIncome','LoanAmount','Loan_Amount_Term','Married','Credit_History']]
 y = train['Loan_Status'].map({'Y':1, 'N':0})
-
-#print('Some y None: ',y.isna().sum())
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+#The file test-LoanProj.csv does not have the label column ,so I did this for real score
 
 numeric_features = ['ApplicantIncome','CoapplicantIncome','LoanAmount','Loan_Amount_Term']
 categorical_features = ['Married','Credit_History']
@@ -38,17 +43,27 @@ pipe_loan_model = Pipeline([
     ('model', SVC(kernel='rbf', probability=True))
 ])
 
-pipe_loan_model.fit(X, y)          #fit the x after the preprocessor of the pipe model
+pipe_loan_model.fit(X_train, y_train)          #fit the x after the preprocessor of the pipe model
+
+y_pred = pipe_loan_model.predict(X_test)
+confusion_matrix_table = confusion_matrix(y_test, y_pred)
+
 
 scores = cross_val_score(pipe_loan_model,X,y,cv=5,scoring='accuracy') # cross validation scoring
 
-#pipe_loan_model.cv_scores_ = scores
+model_data = {
+    "model": pipe_loan_model,
+    "confusion_matrix_table": confusion_matrix_table
+}
 
+print(f"Confusion Matrix Score:\n{confusion_matrix_table}")
 print(f"scores:\n{scores}")
 print("mean score: ",scores.mean())
 
 model_name = str('loan_svm_model.joblib')
 
 # Save the model to disk
-joblib.dump(pipe_loan_model,model_name)
+joblib.dump(model_data,model_name)
 print(f"Model  -- {model_name} --  saved successfully!")
+
+
