@@ -42,6 +42,8 @@ pipe_loan_model.fit(X, y)          #fit the x after the preprocessor of the pipe
 
 scores = cross_val_score(pipe_loan_model,X,y,cv=5,scoring='accuracy') # cross validation scoring
 
+#pipe_loan_model.cv_scores_ = scores
+
 print(f"scores:\n{scores}")
 print("mean score: ",scores.mean())
 
