@@ -34,10 +34,17 @@ def load_model(path: str):
     return joblib.load(path)
 
 pipe_model = load_model(MODEL_PATH)
-model = pipe_model["model"]
-mean_score = pipe_model["mean_score"]
 
-if model is None or mean_score is None:
+model = pipe_model["model"]
+
+cm_table = pipe_model["confusion_matrix_table"]
+cm_df = pd.DataFrame(
+    cm_table,
+    index=["Yes (True)", "No (True)"],
+    columns=["Yes (Prediction)", "No (Prediction)"]
+)
+
+if model is None or cm_df is None:
     st.warning("Model or Score not found")
     st.stop()
 
@@ -103,7 +110,7 @@ if submitted:
 
     # IMPORTANT:
     # Column names must exactly match those used during model training
-    X_to_pred = pd.DataFrame([{
+    X_to_pred = pd.DataFrame({
         "ApplicantIncome": float(ApplicantIncome),
         "CoapplicantIncome": float(CoapplicantIncome),
         "LoanAmount": float(LoanAmount),
@@ -111,9 +118,14 @@ if submitted:
         "Married": Married, #I leave it as "Yes"/"No" because the pipe_line_model(loan_svm_model.joblib) convert by his own OneHotEncoder_pipe,
                             # also the model got the input from the column as "Yes"/"No" unlike Credit_History(its got 1.0/0.0)
         "Credit_History": Credit_History
-    }])
+    },
+    index=["Client"])
 
-    st.dataframe(X_to_pred)
+    x_df = pd.DataFrame(
+        X_to_pred
+    )
+
+    st.dataframe(x_df)
 
     prediction = model.predict(X_to_pred)[0]
 
@@ -127,6 +139,6 @@ if submitted:
         st.error("You are not allowed to take a loan we are sorry")
 
 if check_model_score:
-    st.info(mean_score)
+    st.dataframe(cm_df)
 
 
