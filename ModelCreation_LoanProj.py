@@ -8,12 +8,12 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 
 train = pd.read_csv("train-LoanProj.csv")
-print(train.columns)
+#print(train.columns)
 
 X = train[['ApplicantIncome','CoapplicantIncome','LoanAmount','Loan_Amount_Term','Married','Credit_History']]
 y = train['Loan_Status'].map({'Y':1, 'N':0})
 
-print('Some y None: ',y.isna().sum())
+#print('Some y None: ',y.isna().sum())
 
 numeric_features = ['ApplicantIncome','CoapplicantIncome','LoanAmount','Loan_Amount_Term']
 categorical_features = ['Married','Credit_History']
@@ -40,17 +40,13 @@ pipe_loan_model = Pipeline([
 
 pipe_loan_model.fit(X, y)          #fit the x after the preprocessor of the pipe model
 
-feature_names = pipe_loan_model.named_steps['preprocess'].get_feature_names_out()
-
-print(feature_names)
-
 scores = cross_val_score(pipe_loan_model,X,y,cv=5,scoring='accuracy') # cross validation scoring
 
-print(scores)
-print(scores.mean())
+print(f"scores:\n{scores}")
+print("mean score: ",scores.mean())
+
+model_name = str('loan_svm_model.joblib')
 
 # Save the model to disk
-joblib.dump(pipe_loan_model, 'loan_svm_model.joblib')
-print("Model saved successfully!")
-
-
+joblib.dump(pipe_loan_model,model_name)
+print(f"Model  -- {model_name} --  saved successfully!")
